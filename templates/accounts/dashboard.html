@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-info {
+            font-size: 18px;
+        }
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="user-info">
+            Welcome, <strong>{{ user.username }}</strong> ({{ user.role|capfirst }})
+        </div>
+        <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="content">
+        <h2>Dashboard</h2>
+        {% if user.role == 'admin' %}
+            <p>You are logged in as an Administrator.</p>
+            <p><a href="/admin/">Go to Admin Panel</a></p>
+        {% else %}
+            <p>You are logged in as an Engineer.</p>
+            <p>Engineer dashboard will be implemented here.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

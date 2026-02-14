@@ -1,0 +1,23 @@
+<h2>Assign Complaint</h2>
+
+<p><strong>Complaint No:</strong> {{ complaint.complaint_no }}</p>
+<p><strong>Client:</strong> {{ complaint.client }}</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Select Engineer</label><br>
+    <select name="engineer" required>
+        <option value="">-- Select Engineer --</option>
+        {% for e in engineers %}
+            <option value="{{ e.id }}">{{ e.username }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+
+    <label>Remarks</label><br>
+    <textarea name="remarks"></textarea>
+    <br><br>
+
+    <button type="submit">Assign</button>
+</form>
