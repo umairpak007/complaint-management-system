@@ -3,7 +3,7 @@
 import os
 import sys
 
-# this is main file of project
+# this is main file of project connected with github
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cms.settings')
