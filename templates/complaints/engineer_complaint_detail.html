@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complaint Details</title>
+    <style>
+        body { font-family: Arial; background: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .card { background: white; border-radius: 10px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { color: #2c3e50; margin-top: 0; }
+        .detail-row { display: flex; padding: 12px 0; border-bottom: 1px solid #ecf0f1; }
+        .detail-label { width: 150px; font-weight: bold; color: #7f8c8d; }
+        .detail-value { flex: 1; color: #2c3e50; }
+        .badge { padding: 5px 10px; border-radius: 15px; font-size: 12px; display: inline-block; }
+        .badge-assigned { background: #fff3e0; color: #e67e22; }
+        .badge-resolved { background: #e8f5e9; color: #27ae60; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 10px; }
+        .btn-resolve { background: #27ae60; color: white; }
+        .btn-status { background: #f39c12; color: white; }
+        .btn-back { background: #95a5a6; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #ecf0f1; }
+        .amount { font-weight: bold; color: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Complaint #{{ complaint.complaint_no }}</h1>
+            
+            <div class="detail-row">
+                <div class="detail-label">Client:</div>
+                <div class="detail-value">{{ complaint.client.name }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Product:</div>
+                <div class="detail-value">{{ complaint.product.name }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Fault:</div>
+                <div class="detail-value">{{ complaint.fault.fault_name|default:"N/A" }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Status:</div>
+                <div class="detail-value">
+                    {% if complaint.status == 'assigned' %}
+                        <span class="badge badge-assigned">Pending</span>
+                    {% elif complaint.status == 'resolved' %}
+                        <span class="badge badge-resolved">Resolved</span>
+                    {% else %}
+                        <span>{{ complaint.status }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Details:</div>
+                <div class="detail-value">{{ complaint.other_details|default:"No details" }}</div>
+            </div>
+            
+            <h3 style="margin-top: 30px;">Issued Parts</h3>
+            {% if issued_parts %}
+            <table>
+                <tr>
+                    <th>Part</th>
+                    <th>Source</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                </tr>
+                {% for part in issued_parts %}
+                <tr>
+                    <td>{{ part.part.name }}</td>
+                    <td>{{ part.get_source_display }}</td>
+                    <td>{{ part.quantity }}</td>
+                    <td>{{ part.get_usage_status_display }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>No parts issued yet</p>
+            {% endif %}
+            
+            <div style="margin-top: 30px;">
+                <a href="{% url 'engineer_dashboard' %}" class="btn btn-back">Back to Dashboard</a>
+                {% if complaint.status == 'assigned' %}
+                    <a href="{% url 'resolve_complaint' complaint.id %}" class="btn btn-resolve">Resolve Complaint</a>
+                    <a href="{% url 'update_complaint_status' complaint.id %}" class="btn btn-status">Update Status</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

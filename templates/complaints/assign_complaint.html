@@ -2,22 +2,144 @@
 
 <p><strong>Complaint No:</strong> {{ complaint.complaint_no }}</p>
 <p><strong>Client:</strong> {{ complaint.client }}</p>
+<p><strong>Product:</strong> {{ complaint.product }}</p>
+<p><strong>Fault:</strong> {{ complaint.fault }}</p>
 
 <form method="post">
     {% csrf_token %}
 
+    <!-- Engineer Selection -->
     <label>Select Engineer</label><br>
     <select name="engineer" required>
         <option value="">-- Select Engineer --</option>
         {% for e in engineers %}
-            <option value="{{ e.id }}">{{ e.username }}</option>
+            <option value="{{ e.id }}">{{ e.username }} ({{ e.contact_no }})</option>
         {% endfor %}
     </select>
+
     <br><br>
 
+    <!-- Remarks -->
     <label>Remarks</label><br>
-    <textarea name="remarks"></textarea>
-    <br><br>
+    <textarea name="remarks" rows="3" placeholder="Any notes for assignment..."></textarea>
 
-    <button type="submit">Assign</button>
+    <br><br>
+    <hr>
+
+    <!-- Parts Section - WITHOUT Source Selection -->
+    <h3>Issue Parts to Engineer</h3>
+    <p class="text-muted">Select parts to issue (source will be from part's inventory)</p>
+
+<div id="parts-section">
+    <div class="part-row">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px;">
+            <!-- Part Selection -->
+            <div>
+                <label>Part:</label><br>
+                <select name="part" required style="width: 100%;">
+                    <option value="">-- Select Part --</option>
+                    {% for part in parts %}
+                        <option value="{{ part.id }}">
+                            {{ part.name }} | {{ part.make }} | {{ part.model }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Quantity -->
+            <div>
+                <label>Qty:</label><br>
+                <input type="number" name="quantity" placeholder="Qty" min="1" required style="width: 100%;">
+            </div>
+            <!-- ➕ NEW: Source Field -->
+            <div>
+                <label>Source:</label><br>
+                <select name="source" required style="width: 100%;">
+                    <option value="">-- Select Source --</option>
+                    <option value="new">New</option>
+                    <option value="used">Used</option>
+                    <option value="outsource">Outsource</option>
+                </select>
+            </div>
+            <!-- Notes -->
+            <div>
+                <label>Notes:</label><br>
+                <input type="text" name="notes" placeholder="Extra notes" style="width: 100%;">
+            </div>
+        </div>
+        <button type="button" onclick="removePart(this)" style="margin-top: 5px;">Remove</button>
+    </div>
+</div>
+
+    <br>
+    <button type="button" onclick="addPart()" style="margin-right: 10px;">➕ Add More Part</button>
+
+    <br><br>
+    <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 20px;">Assign Complaint</button>
 </form>
+
+<script>
+function addPart() {
+    var section = document.getElementById("parts-section");
+    var firstRow = document.querySelector(".part-row");
+    var newRow = firstRow.cloneNode(true);
+
+    // Clear values in cloned row
+    newRow.querySelector("select[name='part']").value = "";
+    newRow.querySelector("input[name='quantity']").value = "";
+    newRow.querySelector("select[name='source']").value = "";  // ➕ Add this line
+    newRow.querySelector("input[name='notes']").value = "";
+
+    section.appendChild(newRow);
+}
+
+function removePart(button) {
+    var partRows = document.querySelectorAll('.part-row');
+    if (partRows.length > 1) {
+        button.closest('.part-row').remove();
+    } else {
+        alert("You need at least one part row. Clear values instead of removing.");
+    }
+}
+</script>
+
+<style>
+    .part-row {
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+    .part-row select, .part-row input {
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+    .text-muted {
+        color: #666;
+        font-size: 0.9em;
+    }
+    button {
+        cursor: pointer;
+    }
+</style>
+
+<hr>
+<h3>Last 5 Complaints of This Client</h3>
+
+<table border="1" cellpadding="5" cellspacing="0">
+    <tr>
+        <th>Complaint No</th>
+        <th>Status</th>
+        <th>Date</th>
+    </tr>
+    {% for c in complaint.client.complaint_set.all|dictsortreversed:"created_at"|slice:":5" %}
+    <tr>
+        <td>{{ c.complaint_no }}</td>
+        <td>{{ c.status }}</td>
+        <td>{{ c.created_at|date:"Y-m-d H:i" }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="3">No previous complaints</td>
+    </tr>
+    {% endfor %}
+</table>

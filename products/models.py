@@ -1,4 +1,5 @@
 from django.db import models
+from inventory.models import Part   # ✅ Correct app
 
 
 class Product(models.Model):

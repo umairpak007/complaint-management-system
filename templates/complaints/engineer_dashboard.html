@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Engineer Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+        }
+        
+        .header h1 span {
+            color: #667eea;
+            font-size: 16px;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        .logout-btn {
+            background: #ff4757;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #ee3a4a;
+            transform: translateY(-2px);
+        }
+        
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
+            text-align: center;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        
+        .stat-card.total { border-bottom: 4px solid #667eea; }
+        .stat-card.pending { border-bottom: 4px solid #ffa502; }
+        .stat-card.resolved { border-bottom: 4px solid #26de81; }
+        
+        .stat-number {
+            font-size: 42px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        
+        /* Complaints Section */
+        .complaints-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            color: #2c3e50;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .badge-assigned { background: #fff3e0; color: #e67e22; }
+        .badge-resolved { background: #e8f5e9; color: #27ae60; }
+        .badge-visit { background: #e3f2fd; color: #3498db; }
+        .badge-cancel { background: #ffebee; color: #e74c3c; }
+        
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .btn-view { background: #3498db; color: white; }
+        .btn-resolve { background: #27ae60; color: white; }
+        .btn-status { background: #f39c12; color: white; }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+        }
+        
+        .amount-pkr {
+            font-weight: 600;
+            color: #27ae60;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with User Info -->
+        <div class="header">
+            <div>
+                <h1>
+                    🇵🇰 Engineer Dashboard
+                    <span>Welcome, {{ request.user.username }} | {{ request.user.email }}</span>
+                </h1>
+            </div>
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="stats-container">
+            <div class="stat-card total">
+                <div class="stat-number">{{ total_complaints }}</div>
+                <div class="stat-label">Total Assigned</div>
+            </div>
+            <div class="stat-card pending">
+                <div class="stat-number">{{ pending_complaints }}</div>
+                <div class="stat-label">Pending Resolution</div>
+            </div>
+            <div class="stat-card resolved">
+                <div class="stat-number">{{ resolved_complaints }}</div>
+                <div class="stat-label">Resolved</div>
+            </div>
+        </div>
+
+        <!-- Complaints List -->
+        <div class="complaints-section">
+            <div class="section-header">
+                <h2>My Assigned Complaints</h2>
+            </div>
+            
+            {% if complaints %}
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Complaint #</th>
+                            <th>Client</th>
+                            <th>Product</th>
+                            <th>Fault</th>
+                            <th>Status</th>
+                            <th>Assigned Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for complaint in complaints %}
+                        <tr>
+                            <td><strong>{{ complaint.complaint_no }}</strong></td>
+                            <td>{{ complaint.client.name }}</td>
+                            <td>{{ complaint.product.name }}</td>
+                            <td>{{ complaint.fault.fault_name|default:"N/A" }}</td>
+                            <td>
+                                {% if complaint.status == 'assigned' %}
+                                    <span class="badge badge-assigned">Pending</span>
+                                {% elif complaint.status == 'resolved' %}
+                                    <span class="badge badge-resolved">Resolved</span>
+                                {% elif complaint.status == 'visit_only' %}
+                                    <span class="badge badge-visit">Visit Only</span>
+                                {% elif complaint.status == 'cancel' %}
+                                    <span class="badge badge-cancel">Cancelled</span>
+                                {% else %}
+                                    <span class="badge badge-assigned">{{ complaint.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ complaint.created_at|date:"d-M-Y" }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'engineer_complaint_detail' complaint.id %}" class="btn btn-view">View</a>
+                                    
+                                    {% if complaint.status == 'assigned' %}
+                                        <a href="{% url 'resolve_complaint' complaint.id %}" class="btn btn-resolve">Resolve</a>
+                                        <a href="{% url 'update_complaint_status' complaint.id %}" class="btn btn-status">Update</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="no-data">
+                <h3>No complaints assigned to you yet</h3>
+                <p>When complaints are assigned, they will appear here.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
