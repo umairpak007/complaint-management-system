@@ -4,7 +4,7 @@
     <title>Resolve Complaint</title>
     <style>
         body { font-family: Arial; background: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
+        .container { max-width: 1000px; margin: 0 auto; }
         .card { background: white; border-radius: 10px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h1 { color: #2c3e50; margin-top: 0; }
         h2 { color: #34495e; font-size: 18px; margin: 20px 0 10px; }
@@ -13,14 +13,14 @@
         .info-label { width: 120px; font-weight: bold; color: #7f8c8d; }
         .form-group { margin: 15px 0; }
         label { display: block; margin-bottom: 5px; color: #34495e; font-weight: bold; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
         .checkbox-group { display: flex; gap: 20px; margin: 15px 0; }
         .checkbox-group label { display: flex; align-items: center; gap: 5px; font-weight: normal; }
         .checkbox-group input { width: auto; }
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         th { background: #f8f9fa; padding: 10px; text-align: left; }
         td { padding: 10px; border-bottom: 1px solid #ecf0f1; }
-        .part-quantity { width: 80px; }
+        .part-quantity, .part-price { width: 80px; }
         .total-section { background: #e8f5e9; padding: 20px; border-radius: 5px; margin: 20px 0; }
         .total-row { display: flex; justify-content: space-between; margin: 5px 0; font-size: 16px; }
         .grand-total { font-size: 24px; font-weight: bold; color: #27ae60; }
@@ -47,63 +47,74 @@
                 {% endfor %}
             {% endif %}
             
-            <form method="post">
+            <form method="post" id="resolveForm">
                 {% csrf_token %}
                 
-                <h2>Parts Used</h2>
-                {% if issued_parts %}
-                    <table>
-                        <tr>
-                            <th>Part</th>
-                            <th>Available</th>
-                            <th>Used Quantity</th>
-                            <th>Price/Unit (PKR)</th>
-                            <th>Total</th>
-                        </tr>
+                <h2>Parts Usage</h2>
+                <table>
+                    <tr>
+                        <th>Part</th>
+                        <th>Issued Qty</th>
+                        <th>Used Qty</th>
+                        <th>Remaining</th>
+                        <th>Return?</th>
+                        <th>Price/Unit (PKR)</th>
+                        <th>Total</th>
+                    </tr>
                     {% for part in issued_parts %}
                     <tr>
                         <td>{{ part.part.name }}</td>
-                        <td>{{ part.part.stock_quantity }}</td>
+                        <td>{{ part.quantity }}</td>
                         <td>
                             <input type="number" 
-                                    name="used_qty_{{ part.id }}" 
-                                    class="part-quantity" 
-                                    min="0" 
-                                    max="{{ part.part.stock_quantity }}"
-                                    value="0"
-                                    onchange="calculatePartTotal(this, {{ forloop.counter0 }})">
+                                   name="used_qty_{{ part.id }}" 
+                                   id="used_{{ part.id }}"
+                                   class="part-quantity" 
+                                   min="0" 
+                                   max="{{ part.quantity }}"
+                                   value="0"
+                                   data-issued="{{ part.quantity }}"
+                                   onchange="calculateRemaining({{ part.id }})">
+                        </td>
+                        <td>
+                            <span id="remaining_{{ part.id }}">{{ part.quantity }}</span>
+                            <input type="hidden" name="remaining_qty_{{ part.id }}" id="remaining_input_{{ part.id }}" value="{{ part.quantity }}">
+                        </td>
+                        <td>
+                            <input type="checkbox" 
+                                   name="return_{{ part.id }}" 
+                                   id="return_{{ part.id }}"
+                                   onchange="handleReturn({{ part.id }})">
+                            <label for="return_{{ part.id }}">Return</label>
                         </td>
                         <td>
                             <input type="number" 
-                                    name="price_{{ part.id }}" 
-                                    class="part-price" 
-                                    id="price-{{ forloop.counter0 }}"
-                                    min="0" 
-                                    step="1"
-                                    value="0"
-                                    placeholder="Enter price"
-                                    onchange="calculatePartTotal(this, {{ forloop.counter0 }})"
-                                    style="width: 100px; padding: 5px;">
+                                   name="price_{{ part.id }}" 
+                                   id="price_{{ part.id }}"
+                                   class="part-price" 
+                                   min="0" 
+                                   step="1"
+                                   value="0"
+                                   placeholder="Price"
+                                   onchange="calculatePartTotal({{ part.id }})">
                         </td>
-                        <td class="part-total" id="part-total-{{ forloop.counter0 }}">PKR 0</td>
+                        <td>
+                            <span id="total_{{ part.id }}">PKR 0</span>
+                        </td>
                     </tr>
                     {% endfor %}
                 </table>
-
-                {% else %}
-                <p>No parts issued for this complaint</p>
-                {% endif %}
                 
                 <h2>Service Charges</h2>
                 <div class="form-group">
-                    <input type="number" name="service_charge" id="service-charge" step="0.01" min="0" value="0" onchange="calculateTotal()">
+                    <input type="number" name="service_charge" id="service-charge" step="0.01" min="0" value="0" onchange="calculateGrandTotal()">
                 </div>
                 
                 <h2>Special Cases</h2>
                 <div class="checkbox-group">
-                    <label><input type="checkbox" name="is_free" onchange="handleSpecialCase(this)"> Free Service</label>
-                    <label><input type="checkbox" name="is_amc" onchange="handleSpecialCase(this)"> Under AMC</label>
-                    <label><input type="checkbox" name="is_warranty" onchange="handleSpecialCase(this)"> Under Warranty</label>
+                    <label><input type="checkbox" name="is_free" class="special-case" onchange="handleSpecialCase(this)"> Free Service</label>
+                    <label><input type="checkbox" name="is_amc" class="special-case" onchange="handleSpecialCase(this)"> Under AMC</label>
+                    <label><input type="checkbox" name="is_warranty" class="special-case" onchange="handleSpecialCase(this)"> Under Warranty</label>
                 </div>
                 
                 <h2>Remarks</h2>
@@ -133,57 +144,96 @@
             </form>
         </div>
     </div>
-    
-    <script>
-        let partTotals = [];
-        
-        function calculatePartTotal(element, index) {
-    // Get quantity and price for this part
-    let qtyInput = document.querySelector(`input[name="used_qty_${index === undefined ? '' : '${partId}'}"]`); // This needs adjustment
-    
-    // Better approach - use row-based calculation
-    let row = element.closest('tr');
-    let qty = row.querySelector('.part-quantity').value || 0;
-    let price = row.querySelector('.part-price').value || 0;
-    let total = qty * price;
-    
-    // Update total for this row
-    row.querySelector('.part-total').innerText = 'PKR ' + total;
-    
-    // Recalculate grand total
-    calculateGrandTotal();
-}
 
-function calculateGrandTotal() {
-    let partsTotal = 0;
-    let rows = document.querySelectorAll('tr');
-    
-    rows.forEach((row, index) => {
-        if (index > 0) { // Skip header row
-            let totalCell = row.querySelector('.part-total');
-            if (totalCell) {
-                let totalText = totalCell.innerText.replace('PKR ', '');
-                partsTotal += parseFloat(totalText) || 0;
+    <!-- ====================== -->
+    <!-- JAVASCRIPT YAHAN ADD KARO -->
+    <!-- ====================== -->
+    <script>
+        // Store issued quantities for each part
+        const issuedQuantities = {};
+        
+        {% for part in issued_parts %}
+            issuedQuantities[{{ part.id }}] = {{ part.quantity }};
+        {% endfor %}
+        
+        function calculateRemaining(partId) {
+            let usedQty = parseInt(document.getElementById(`used_${partId}`).value) || 0;
+            let issuedQty = issuedQuantities[partId] || 0;
+            let remaining = issuedQty - usedQty;
+            
+            // Update remaining display
+            document.getElementById(`remaining_${partId}`).innerText = remaining;
+            document.getElementById(`remaining_input_${partId}`).value = remaining;
+            
+            // If used quantity > 0, auto-untick return
+            if (usedQty > 0) {
+                document.getElementById(`return_${partId}`).checked = false;
             }
+            
+            calculatePartTotal(partId);
         }
-    });
-    
-    // Service charge
-    let serviceCharge = parseFloat(document.getElementById('service-charge').value) || 0;
-    
-    // Check special cases
-    let isSpecial = false;
-    document.querySelectorAll('input[type=checkbox]').forEach(cb => {
-        if (cb.checked) isSpecial = true;
-    });
-    
-    // Update display
-    document.getElementById('total-parts').innerText = 'PKR ' + partsTotal;
-    document.getElementById('total-service').innerText = 'PKR ' + serviceCharge;
-    
-    let grandTotal = isSpecial ? 0 : partsTotal + serviceCharge;
-    document.getElementById('grand-total').innerText = 'PKR ' + grandTotal;
-}
+        
+        function handleReturn(partId) {
+            let returnCheckbox = document.getElementById(`return_${partId}`);
+            let usedInput = document.getElementById(`used_${partId}`);
+            let issuedQty = issuedQuantities[partId] || 0;
+            
+            if (returnCheckbox.checked) {
+                // If returning all parts, set used quantity to 0
+                usedInput.value = 0;
+                document.getElementById(`remaining_${partId}`).innerText = issuedQty;
+                document.getElementById(`remaining_input_${partId}`).value = issuedQty;
+                usedInput.disabled = true;
+            } else {
+                usedInput.disabled = false;
+            }
+            
+            calculatePartTotal(partId);
+        }
+        
+        function calculatePartTotal(partId) {
+            let usedQty = parseInt(document.getElementById(`used_${partId}`).value) || 0;
+            let price = parseFloat(document.getElementById(`price_${partId}`).value) || 0;
+            let total = usedQty * price;
+            
+            document.getElementById(`total_${partId}`).innerText = 'PKR ' + total;
+            calculateGrandTotal();
+        }
+        
+        function calculateGrandTotal() {
+            let partsTotal = 0;
+            
+            // Sum all part totals
+            document.querySelectorAll('[id^="total_"]').forEach(element => {
+                let totalText = element.innerText.replace('PKR ', '');
+                partsTotal += parseFloat(totalText) || 0;
+            });
+            
+            let serviceCharge = parseFloat(document.getElementById('service-charge').value) || 0;
+            
+            // Check if any special case is checked
+            let isSpecial = false;
+            document.querySelectorAll('.special-case').forEach(cb => {
+                if (cb.checked) isSpecial = true;
+            });
+            
+            // Update display
+            document.getElementById('total-parts').innerText = 'PKR ' + partsTotal.toFixed(2);
+            document.getElementById('total-service').innerText = 'PKR ' + serviceCharge.toFixed(2);
+            
+            let grandTotal = isSpecial ? 0 : partsTotal + serviceCharge;
+            document.getElementById('grand-total').innerText = 'PKR ' + grandTotal.toFixed(2);
+        }
+        
+        function handleSpecialCase(checkbox) {
+            // Uncheck other checkboxes
+            if (checkbox.checked) {
+                document.querySelectorAll('.special-case').forEach(cb => {
+                    if (cb !== checkbox) cb.checked = false;
+                });
+            }
+            calculateGrandTotal();
+        }
     </script>
 </body>
 </html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operations Dashboard | CMS</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .sidebar a {
+            color: rgba(255,255,255,.8);
+            text-decoration: none;
+            padding: 12px 20px;
+            display: block;
+            transition: 0.3s;
+        }
+        .sidebar a:hover {
+            background: rgba(255,255,255,.2);
+            color: white;
+            padding-left: 30px;
+        }
+        .sidebar a.active {
+            background: rgba(255,255,255,.3);
+            color: white;
+            border-left: 4px solid white;
+        }
+        .main-content {
+            padding: 30px;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
+            border-left: 4px solid;
+            margin-bottom: 20px;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .stat-icon {
+            font-size: 40px;
+            opacity: 0.2;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+        .badge-pending { background: #fff3e0; color: #e67e22; }
+        .badge-resolved { background: #e8f5e9; color: #27ae60; }
+        .badge-assigned { background: #e3f2fd; color: #1976d2; }
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 p-0 sidebar">
+                <div class="p-4">
+                    <h4 class="text-white mb-4">
+                        <i class="fas fa-tools me-2"></i>Ops Panel
+                    </h4>
+                    <hr class="bg-white">
+                </div>
+                <nav>
+                    <a href="#" class="active">
+                        <i class="fas fa-dashboard me-2"></i> Dashboard
+                    </a>
+                    <a href="user/">
+                        <i class="fas fa-users me-2"></i> Users Management
+                    </a>
+                    <a href="products">
+                        <i class="fas fa-box me-2"></i> Products
+                    </a>
+                    <a href="parts/">
+                        <i class="fas fa-cogs me-2"></i> Parts
+                    </a>
+                    <a href="pending/">
+                        <i class="fas fa-clipboard-list me-2"></i> Complaints
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Inventory Alerts
+                    </a>
+                    <a href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out me-2"></i> Logout
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Top Bar -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-dashboard me-2"></i>Operations Dashboard</h2>
+                    <div>
+                        <span class="badge bg-primary p-3">
+                            <i class="fas fa-user me-2"></i>{{ request.user.username }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-left-color: #3498db;">
+                            <div class="position-relative">
+                                <h3 class="mb-0">24</h3>
+                                <p class="text-muted mb-0">Pending Complaints</p>
+                                <i class="fas fa-clock stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-left-color: #27ae60;">
+                            <div class="position-relative">
+                                <h3 class="mb-0">8</h3>
+                                <p class="text-muted mb-0">Active Engineers</p>
+                                <i class="fas fa-users stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-left-color: #e67e22;">
+                            <div class="position-relative">
+                                <h3 class="mb-0">156</h3>
+                                <p class="text-muted mb-0">Total Parts</p>
+                                <i class="fas fa-cogs stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-left-color: #e74c3c;">
+                            <div class="position-relative">
+                                <h3 class="mb-0">5</h3>
+                                <p class="text-muted mb-0">Low Stock Alerts</p>
+                                <i class="fas fa-exclamation-triangle stat-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                            </div>
+                            <div class="card-body">
+                                <a href="#" class="btn btn-primary me-2 mb-2">
+                                    <i class="fas fa-plus me-2"></i>New Complaint
+                                </a>
+                                <a href="#" class="btn btn-success me-2 mb-2">
+                                    <i class="fas fa-user-plus me-2"></i>Add Engineer
+                                </a>
+                                <a href="#" class="btn btn-info me-2 mb-2 text-white">
+                                    <i class="fas fa-cog me-2"></i>Add Part
+                                </a>
+                                <a href="#" class="btn btn-warning me-2 mb-2">
+                                    <i class="fas fa-truck me-2"></i>Stock Request
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Complaints Table -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5><i class="fas fa-clipboard-list me-2"></i>Recent Complaints</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Complaint #</th>
+                                            <th>Client</th>
+                                            <th>Product</th>
+                                            <th>Status</th>
+                                            <th>Assigned To</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>CMP-2025-001</strong></td>
+                                            <td>Ahmed Traders</td>
+                                            <td>AC - Samsung</td>
+                                            <td><span class="badge badge-pending">Pending</span></td>
+                                            <td>Usama</td>
+                                            <td>
+                                                <a href="#" class="btn btn-sm btn-info">View</a>
+                                                <a href="#" class="btn btn-sm btn-success">Assign</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>CMP-2025-002</strong></td>
+                                            <td>Bilal Enterprises</td>
+                                            <td>Fridge - Dawlance</td>
+                                            <td><span class="badge badge-assigned">Assigned</span></td>
+                                            <td>Bilal</td>
+                                            <td>
+                                                <a href="#" class="btn btn-sm btn-info">View</a>
+                                                <a href="#" class="btn btn-sm btn-warning">Reassign</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory Alerts -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5><i class="fas fa-exclamation-circle me-2 text-danger"></i>Low Stock Alerts</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group">
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        Compressor
+                                        <span class="badge bg-danger">3 left</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+        Condenser Coil
+                                        <span class="badge bg-warning">5 left</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+        Fan Motor
+                                        <span class="badge bg-danger">2 left</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5><i class="fas fa-chart-line me-2"></i>Today's Activity</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="activityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple Chart
+        const ctx = document.getElementById('activityChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['9AM', '11AM', '1PM', '3PM', '5PM'],
+                datasets: [{
+                    label: 'Complaints Resolved',
+                    data: [2, 5, 3, 8, 4],
+                    borderColor: '#667eea',
+                    tension: 0.4
+                }]
+            }
+        });
+    </script>
+</body>
+</html>
