@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}New Complaint{% endblock %}
+{% block page_title %}Create New Complaint{% endblock %}
+
+{% block content %}
+<div class="glass-card fade-up">
+    <div class="card-header">
+        <h3>📋 Register New Complaint</h3>
+    </div>
+    <form method="post" action="{% url 'create_complaint' %}">
+        {% csrf_token %}
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="client">Client *</label>
+                <select name="client" id="client" class="form-control" required>
+                    <option value="">— Select Client —</option>
+                    {% for c in clients %}
+                    <option value="{{ c.id }}">{{ c.name }} ({{ c.primary_contact_no }})</option>
+                    {% endfor %}
+                </select>
+                <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">
+                    Don't see the client? <a href="{% url 'client_management' %}">Add new client</a>
+                </small>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="product">Product *</label>
+                <select name="product" id="product" class="form-control" required>
+                    <option value="">— Select Product —</option>
+                    {% for p in products %}
+                    <option value="{{ p.id }}">{{ p.brand_make }} - {{ p.brand_model }}</option>
+                    {% endfor %}
+                </select>
+                <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">
+                    Don't see the product? <a href="{% url 'product_management' %}">Add new product</a>
+                </small>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="fault">Fault Type</label>
+                <select name="fault" id="fault" class="form-control">
+                    <option value="">— None / Other —</option>
+                    {% for f in faults %}
+                    <option value="{{ f.id }}">{{ f.fault_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="priority">Priority *</label>
+                <select name="priority" id="priority" class="form-control" required>
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="other_details">Other Details / Description</label>
+            <textarea name="other_details" id="other_details" class="form-control" rows="3"
+                placeholder="Describe the issue in detail..."></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg">✓ Create Complaint</button>
+            <a href="{% url 'complaint_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

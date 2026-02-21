@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Export Reports{% endblock %}
+{% block page_title %}Export Reports{% endblock %}
+
+{% block content %}
+<div class="glass-card fade-up">
+    <div class="card-header">
+        <h3>📤 Export Reports</h3>
+    </div>
+    <div class="quick-actions">
+        <div class="quick-action-card">
+            <span class="qa-icon">📄</span>
+            <span>Export as PDF</span>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:4px;">Generate printable PDF reports</p>
+        </div>
+        <div class="quick-action-card">
+            <span class="qa-icon">📊</span>
+            <span>Export as Excel</span>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:4px;">Download spreadsheet reports</p>
+        </div>
+    </div>
+    <div class="empty-state" style="padding:30px;">
+        <p style="font-size:12px;color:var(--text-muted);">Export functionality will be available once report generation
+            is configured.</p>
+    </div>
+</div>
+{% endblock %}

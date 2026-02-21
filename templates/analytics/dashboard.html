@@ -1,2 +1,38 @@
-<h1>Analytics Dashboard</h1>
-<p>Working!</p>
+{% extends 'base.html' %}
+
+{% block title %}Analytics{% endblock %}
+{% block page_title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h2 class="section-title">Reports & Analytics</h2>
+</div>
+
+<div class="quick-actions fade-up">
+    <a href="{% url 'revenue_report' %}" class="quick-action-card">
+        <span class="qa-icon">💰</span>Revenue Report
+    </a>
+    <a href="{% url 'engineer_performance' %}" class="quick-action-card">
+        <span class="qa-icon">🏆</span>Engineer Performance
+    </a>
+    <a href="{% url 'parts_usage_report' %}" class="quick-action-card">
+        <span class="qa-icon">🔩</span>Parts Usage
+    </a>
+    <a href="{% url 'complaint_trends' %}" class="quick-action-card">
+        <span class="qa-icon">📉</span>Complaint Trends
+    </a>
+    <a href="{% url 'export_pdf' %}" class="quick-action-card">
+        <span class="qa-icon">📄</span>Export PDF
+    </a>
+    <a href="{% url 'export_excel' %}" class="quick-action-card">
+        <span class="qa-icon">📊</span>Export Excel
+    </a>
+</div>
+
+<div class="glass-card fade-up">
+    <div class="empty-state">
+        <div class="empty-icon">📈</div>
+        <p>Select a report from above to view detailed analytics</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CMS{% endblock %} — Complaint Management System</title>
+  <meta name="description" content="Professional Complaint Management System">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+  <div class="app-layout">
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- ======== SIDEBAR ======== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">C</div>
+        <h2>CMS</h2>
+      </div>
+
+      <nav class="sidebar-nav">
+
+        <!-- Admin Links -->
+        {% if user.role == 'admin' %}
+        <div class="nav-section">
+          <div class="nav-section-title">Dashboard</div>
+          <a href="{% url 'admin_dashboard' %}" class="nav-link">
+            <span class="nav-icon">📊</span> Admin Dashboard
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Complaints</div>
+          <a href="{% url 'create_complaint' %}" class="nav-link">
+            <span class="nav-icon">➕</span> New Complaint
+          </a>
+          <a href="{% url 'complaint_list' %}" class="nav-link">
+            <span class="nav-icon">📋</span> All Complaints
+          </a>
+          <a href="{% url 'pending_complaints' %}" class="nav-link">
+            <span class="nav-icon">⏳</span> Pending
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Management</div>
+          <a href="{% url 'user_management' %}" class="nav-link">
+            <span class="nav-icon">👥</span> Users
+          </a>
+          <a href="{% url 'client_management' %}" class="nav-link">
+            <span class="nav-icon">🏢</span> Clients
+          </a>
+          <a href="{% url 'product_management' %}" class="nav-link">
+            <span class="nav-icon">📦</span> Products
+          </a>
+          <a href="{% url 'fault_management' %}" class="nav-link">
+            <span class="nav-icon">⚡</span> Faults
+          </a>
+          <a href="{% url 'part_management' %}" class="nav-link">
+            <span class="nav-icon">🔧</span> Inventory
+          </a>
+          <a href="{% url 'inventory_alerts' %}" class="nav-link">
+            <span class="nav-icon">🚨</span> Stock Alerts
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Analytics</div>
+          <a href="{% url 'analytics_dashboard' %}" class="nav-link">
+            <span class="nav-icon">📈</span> Analytics
+          </a>
+        </div>
+        {% endif %}
+
+        <!-- Engineer Links -->
+        {% if user.role == 'engineer' %}
+        <div class="nav-section">
+          <div class="nav-section-title">Dashboard</div>
+          <a href="{% url 'engineer_dashboard' %}" class="nav-link">
+            <span class="nav-icon">🏠</span> My Dashboard
+          </a>
+        </div>
+        {% endif %}
+
+        <!-- Operations Links -->
+        {% if user.role == 'operations' %}
+        <div class="nav-section">
+          <div class="nav-section-title">Complaints</div>
+          <a href="{% url 'create_complaint' %}" class="nav-link">
+            <span class="nav-icon">➕</span> New Complaint
+          </a>
+          <a href="{% url 'complaint_list' %}" class="nav-link">
+            <span class="nav-icon">📋</span> All Complaints
+          </a>
+          <a href="{% url 'pending_complaints' %}" class="nav-link">
+            <span class="nav-icon">⏳</span> Pending
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Management</div>
+          <a href="{% url 'operations_dashboard' %}" class="nav-link">
+            <span class="nav-icon">⚙️</span> Dashboard
+          </a>
+          <a href="{% url 'user_management' %}" class="nav-link">
+            <span class="nav-icon">👥</span> Users
+          </a>
+          <a href="{% url 'client_management' %}" class="nav-link">
+            <span class="nav-icon">🏢</span> Clients
+          </a>
+          <a href="{% url 'product_management' %}" class="nav-link">
+            <span class="nav-icon">📦</span> Products
+          </a>
+          <a href="{% url 'fault_management' %}" class="nav-link">
+            <span class="nav-icon">⚡</span> Faults
+          </a>
+          <a href="{% url 'part_management' %}" class="nav-link">
+            <span class="nav-icon">🔧</span> Inventory
+          </a>
+          <a href="{% url 'inventory_alerts' %}" class="nav-link">
+            <span class="nav-icon">🚨</span> Stock Alerts
+          </a>
+        </div>
+        {% endif %}
+
+        <!-- Analytics Links -->
+        {% if user.role == 'analytics' %}
+        <div class="nav-section">
+          <div class="nav-section-title">Analytics</div>
+          <a href="{% url 'analytics_dashboard' %}" class="nav-link">
+            <span class="nav-icon">📈</span> Dashboard
+          </a>
+          <a href="{% url 'revenue_report' %}" class="nav-link">
+            <span class="nav-icon">💰</span> Revenue
+          </a>
+          <a href="{% url 'engineer_performance' %}" class="nav-link">
+            <span class="nav-icon">🏆</span> Engineers
+          </a>
+          <a href="{% url 'parts_usage_report' %}" class="nav-link">
+            <span class="nav-icon">🔩</span> Parts Usage
+          </a>
+          <a href="{% url 'complaint_trends' %}" class="nav-link">
+            <span class="nav-icon">📉</span> Trends
+          </a>
+        </div>
+        {% endif %}
+
+        <!-- Common Links -->
+        <div class="nav-section">
+          <div class="nav-section-title">Account</div>
+          <a href="{% url 'profile' %}" class="nav-link">
+            <span class="nav-icon">👤</span> Profile
+          </a>
+          <a href="{% url 'change_password' %}" class="nav-link">
+            <span class="nav-icon">🔒</span> Password
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- ======== MAIN CONTENT ======== -->
+    <div class="main-content">
+
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <div class="navbar-left">
+          <button class="menu-toggle" id="menu-toggle">☰</button>
+          <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+        </div>
+        <div class="navbar-right">
+          <div class="navbar-user">
+            <div class="user-avatar">{{ user.username|first|upper }}</div>
+            <div class="user-info">
+              <span class="user-name">{{ user.username }}</span>
+              <span class="user-role">{{ user.role }}</span>
+            </div>
+          </div>
+          <a href="{% url 'logout' %}" class="btn-logout">⏻ Logout</a>
+        </div>
+      </header>
+
+      <!-- Flash Messages -->
+      {% if messages %}
+      <div style="padding: 16px 28px 0;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          <span>{% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% elif message.tags == 'warning'
+            %}⚠{% else %}ℹ{% endif %}</span>
+          {{ message }}
+          <button class="close-btn">&times;</button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Page Content -->
+      <main class="page-content fade-up">
+        {% block content %}{% endblock %}
+      </main>
+
+    </div>
+  </div>
+
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>

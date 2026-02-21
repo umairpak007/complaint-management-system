@@ -1,2 +1,44 @@
-<h1>pending complaints</h1>
-<p>Working with real data soon...</p>
+{% extends 'base.html' %}
+
+{% block title %}Pending Complaints{% endblock %}
+{% block page_title %}Pending Complaints{% endblock %}
+
+{% block content %}
+<div class="glass-card fade-up">
+    <div class="card-header">
+        <h3>Assigned / Pending Complaints</h3>
+        <span class="badge badge-assigned">{{ complaints|length }} pending</span>
+    </div>
+    {% if complaints %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Complaint #</th>
+                    <th>Client</th>
+                    <th>Product</th>
+                    <th>Priority</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in complaints %}
+                <tr>
+                    <td class="td-bold">{{ c.complaint_no }}</td>
+                    <td>{{ c.client }}</td>
+                    <td>{{ c.product }}</td>
+                    <td><span class="badge badge-{{ c.priority }}">{{ c.get_priority_display }}</span></td>
+                    <td>{{ c.created_at|date:"d M Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <p>No pending complaints — everything is up to date!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

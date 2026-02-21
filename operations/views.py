@@ -98,18 +98,20 @@ def product_management(request):
     products = Product.objects.all().order_by('-created_at')
     
     if request.method == 'POST':
-        # Add product logic
-        name = request.POST.get('name')
-        description = request.POST.get('description')
+        brand_make = request.POST.get('brand_make')
+        brand_model = request.POST.get('brand_model')
+        product_type = request.POST.get('product_type', '')
         
-        if name:
+        if brand_make and brand_model:
             Product.objects.create(
-                name=name,
-                description=description,
-                created_by=request.user
+                brand_make=brand_make,
+                brand_model=brand_model,
+                product_type=product_type
             )
-            messages.success(request, f"Product {name} added!")
+            messages.success(request, f"Product {brand_make} - {brand_model} added!")
             return redirect('product_management')
+        else:
+            messages.error(request, "Brand Make and Brand Model are required.")
     
     context = {'products': products}
     return render(request, 'operations/product_management.html', context)
@@ -189,7 +191,7 @@ def quick_actions(request):
     action = request.GET.get('action')
     
     if action == 'new_complaint':
-        return redirect('complaint_list')  # or your complaint create URL
+        return redirect('create_complaint')
     elif action == 'add_engineer':
         return redirect('user_management')
     elif action == 'add_part':
@@ -197,3 +199,121 @@ def quick_actions(request):
     else:
         messages.warning(request, "Invalid action")
         return redirect('operations_dashboard')
+
+
+# ============================
+# CLIENT MANAGEMENT
+# ============================
+@login_required
+def client_management(request):
+    """Manage Clients"""
+    if not check_operations_access(request.user):
+        messages.error(request, "Access denied.")
+        return redirect('login')
+    
+    clients = Client.objects.all().order_by('-created_at')
+    
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        primary_contact = request.POST.get('primary_contact_no')
+        alternate_contact = request.POST.get('alternate_contact_no', '')
+        email = request.POST.get('email', '')
+        address = request.POST.get('office_address', '')
+        
+        if name and primary_contact:
+            Client.objects.create(
+                name=name,
+                primary_contact_no=primary_contact,
+                alternate_contact_no=alternate_contact,
+                email=email,
+                office_address=address
+            )
+            messages.success(request, f"Client '{name}' added!")
+            return redirect('client_management')
+        else:
+            messages.error(request, "Client name and contact number are required.")
+    
+    context = {'clients': clients}
+    return render(request, 'operations/client_management.html', context)
+
+
+# ============================
+# FAULT MANAGEMENT
+# ============================
+@login_required
+def fault_management(request):
+    """Manage Faults"""
+    if not check_operations_access(request.user):
+        messages.error(request, "Access denied.")
+        return redirect('login')
+    
+    from complaints.models import Fault
+    faults = Fault.objects.all().order_by('-created_at')
+    
+    if request.method == 'POST':
+        fault_name = request.POST.get('fault_name')
+        description = request.POST.get('description', '')
+        
+        if fault_name:
+            Fault.objects.create(
+                fault_name=fault_name,
+                description=description
+            )
+            messages.success(request, f"Fault '{fault_name}' added!")
+            return redirect('fault_management')
+        else:
+            messages.error(request, "Fault name is required.")
+    
+    context = {'faults': faults}
+    return render(request, 'operations/fault_management.html', context)
+
+
+# ============================
+# CREATE COMPLAINT
+# ============================
+@login_required
+def create_complaint(request):
+    """Create a new complaint"""
+    if not check_operations_access(request.user):
+        messages.error(request, "Access denied.")
+        return redirect('login')
+    
+    from complaints.models import Fault
+    clients = Client.objects.all().order_by('name')
+    products = Product.objects.all().order_by('brand_make')
+    faults = Fault.objects.filter(is_active=True).order_by('fault_name')
+    
+    if request.method == 'POST':
+        client_id = request.POST.get('client')
+        product_id = request.POST.get('product')
+        fault_id = request.POST.get('fault')
+        priority = request.POST.get('priority', 'medium')
+        other_details = request.POST.get('other_details', '')
+        
+        if client_id and product_id:
+            try:
+                client = Client.objects.get(id=client_id)
+                product = Product.objects.get(id=product_id)
+                fault = Fault.objects.get(id=fault_id) if fault_id else None
+                
+                complaint = Complaint.objects.create(
+                    client=client,
+                    product=product,
+                    fault=fault,
+                    priority=priority,
+                    other_details=other_details,
+                    status='new'
+                )
+                messages.success(request, f"Complaint {complaint.complaint_no} created!")
+                return redirect('complaint_list')
+            except Exception as e:
+                messages.error(request, f"Error creating complaint: {str(e)}")
+        else:
+            messages.error(request, "Client and Product are required.")
+    
+    context = {
+        'clients': clients,
+        'products': products,
+        'faults': faults,
+    }
+    return render(request, 'operations/create_complaint.html', context)

@@ -1,145 +1,122 @@
-<h2>Assign Complaint</h2>
+{% extends 'base.html' %}
 
-<p><strong>Complaint No:</strong> {{ complaint.complaint_no }}</p>
-<p><strong>Client:</strong> {{ complaint.client }}</p>
-<p><strong>Product:</strong> {{ complaint.product }}</p>
-<p><strong>Fault:</strong> {{ complaint.fault }}</p>
+{% block title %}Assign Complaint{% endblock %}
+{% block page_title %}Assign Complaint{% endblock %}
 
-<form method="post">
-    {% csrf_token %}
+{% block content %}
+<!-- Complaint Info -->
+<div class="glass-card fade-up mb-3">
+    <div class="card-header">
+        <h3>Complaint: {{ complaint.complaint_no }}</h3>
+    </div>
+    <div class="detail-grid">
+        <div>
+            <div class="detail-row">
+                <span class="detail-label">Client</span>
+                <span class="detail-value">{{ complaint.client }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Product</span>
+                <span class="detail-value">{{ complaint.product }}</span>
+            </div>
+        </div>
+        <div>
+            <div class="detail-row">
+                <span class="detail-label">Fault</span>
+                <span class="detail-value">{{ complaint.fault|default:"—" }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Priority</span>
+                <span class="detail-value"><span class="badge badge-{{ complaint.priority }}">{{
+                        complaint.get_priority_display }}</span></span>
+            </div>
+        </div>
+    </div>
+    {% if complaint.other_details %}
+    <div style="margin-top:14px;">
+        <span class="detail-label">Details</span>
+        <p style="margin-top:6px;color:var(--text-secondary);font-size:13.5px;">{{ complaint.other_details }}</p>
+    </div>
+    {% endif %}
+</div>
 
-    <!-- Engineer Selection -->
-    <label>Select Engineer</label><br>
-    <select name="engineer" required>
-        <option value="">-- Select Engineer --</option>
-        {% for e in engineers %}
-            <option value="{{ e.id }}">{{ e.username }} ({{ e.contact_no }})</option>
-        {% endfor %}
-    </select>
+<!-- Assignment Form -->
+<div class="glass-card fade-up">
+    <div class="card-header">
+        <h3>Assign Engineer & Issue Parts</h3>
+    </div>
+    <form method="post" action="{% url 'assign_complaint' complaint.pk %}">
+        {% csrf_token %}
 
-    <br><br>
-
-    <!-- Remarks -->
-    <label>Remarks</label><br>
-    <textarea name="remarks" rows="3" placeholder="Any notes for assignment..."></textarea>
-
-    <br><br>
-    <hr>
-
-    <!-- Parts Section - WITHOUT Source Selection -->
-    <h3>Issue Parts to Engineer</h3>
-    <p class="text-muted">Select parts to issue (source will be from part's inventory)</p>
-
-<div id="parts-section">
-    <div class="part-row">
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px;">
-            <!-- Part Selection -->
-            <div>
-                <label>Part:</label><br>
-                <select name="part" required style="width: 100%;">
-                    <option value="">-- Select Part --</option>
-                    {% for part in parts %}
-                        <option value="{{ part.id }}">
-                            {{ part.name }} | {{ part.make }} | {{ part.model }}
-                        </option>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="engineer">Select Engineer</label>
+                <select name="engineer" id="engineer" class="form-control" required>
+                    <option value="">— Choose Engineer —</option>
+                    {% for eng in engineers %}
+                    <option value="{{ eng.id }}">{{ eng.username }}{% if eng.first_name %} ({{ eng.first_name }} {{
+                        eng.last_name }}){% endif %}</option>
                     {% endfor %}
                 </select>
             </div>
-            <!-- Quantity -->
-            <div>
-                <label>Qty:</label><br>
-                <input type="number" name="quantity" placeholder="Qty" min="1" required style="width: 100%;">
-            </div>
-            <!-- ➕ NEW: Source Field -->
-            <div>
-                <label>Source:</label><br>
-                <select name="source" required style="width: 100%;">
-                    <option value="">-- Select Source --</option>
-                    <option value="new">New</option>
-                    <option value="used">Used</option>
-                    <option value="outsource">Outsource</option>
-                </select>
-            </div>
-            <!-- Notes -->
-            <div>
-                <label>Notes:</label><br>
-                <input type="text" name="notes" placeholder="Extra notes" style="width: 100%;">
+            <div class="form-group">
+                <label class="form-label" for="remarks">Remarks</label>
+                <input type="text" name="remarks" id="remarks" class="form-control" placeholder="Assignment notes...">
             </div>
         </div>
-        <button type="button" onclick="removePart(this)" style="margin-top: 5px;">Remove</button>
-    </div>
+
+        <!-- Parts Table -->
+        <div class="section-header mt-2">
+            <h3 class="section-title">Issue Parts (Optional)</h3>
+            <button type="button" id="add-part-row" class="btn btn-secondary btn-sm">+ Add Part</button>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Part</th>
+                        <th>Quantity</th>
+                        <th>Source</th>
+                        <th>Notes</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="parts-body">
+                    <tr>
+                        <td>
+                            <select name="part" class="form-control">
+                                <option value="">Select Part</option>
+                                {% for p in parts %}
+                                <option value="{{ p.id }}">{{ p.name }} ({{ p.make }} - {{ p.model }}) [Stock: {{
+                                    p.stock_quantity }}]</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><input type="number" name="quantity" class="form-control" value="1" min="1"></td>
+                        <td>
+                            <select name="source" class="form-control">
+                                <option value="new">New</option>
+                                <option value="used">Used</option>
+                                <option value="outsource">Outsource</option>
+                            </select>
+                        </td>
+                        <td><input type="text" name="notes" class="form-control" placeholder="Notes"></td>
+                        <td><button type="button" class="btn btn-danger btn-sm remove-part-row">✕</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">✓ Assign Complaint</button>
+            <a href="{% url 'complaint_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
 </div>
 
-    <br>
-    <button type="button" onclick="addPart()" style="margin-right: 10px;">➕ Add More Part</button>
-
-    <br><br>
-    <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 20px;">Assign Complaint</button>
-</form>
-
+<!-- Pass part options to JS for dynamic rows -->
 <script>
-function addPart() {
-    var section = document.getElementById("parts-section");
-    var firstRow = document.querySelector(".part-row");
-    var newRow = firstRow.cloneNode(true);
-
-    // Clear values in cloned row
-    newRow.querySelector("select[name='part']").value = "";
-    newRow.querySelector("input[name='quantity']").value = "";
-    newRow.querySelector("select[name='source']").value = "";  // ➕ Add this line
-    newRow.querySelector("input[name='notes']").value = "";
-
-    section.appendChild(newRow);
-}
-
-function removePart(button) {
-    var partRows = document.querySelectorAll('.part-row');
-    if (partRows.length > 1) {
-        button.closest('.part-row').remove();
-    } else {
-        alert("You need at least one part row. Clear values instead of removing.");
-    }
-}
+    window.partOptionsHTML = `<option value="">Select Part</option>{% for p in parts %}<option value="{{ p.id }}">{{ p.name }} ({{ p.make }} - {{ p.model }}) [Stock: {{ p.stock_quantity }}]</option>{% endfor %}`;
 </script>
-
-<style>
-    .part-row {
-        background-color: #f9f9f9;
-        border-radius: 5px;
-        margin-bottom: 15px;
-    }
-    .part-row select, .part-row input {
-        padding: 5px;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-    }
-    .text-muted {
-        color: #666;
-        font-size: 0.9em;
-    }
-    button {
-        cursor: pointer;
-    }
-</style>
-
-<hr>
-<h3>Last 5 Complaints of This Client</h3>
-
-<table border="1" cellpadding="5" cellspacing="0">
-    <tr>
-        <th>Complaint No</th>
-        <th>Status</th>
-        <th>Date</th>
-    </tr>
-    {% for c in complaint.client.complaint_set.all|dictsortreversed:"created_at"|slice:":5" %}
-    <tr>
-        <td>{{ c.complaint_no }}</td>
-        <td>{{ c.status }}</td>
-        <td>{{ c.created_at|date:"Y-m-d H:i" }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="3">No previous complaints</td>
-    </tr>
-    {% endfor %}
-</table>
+{% endblock %}

@@ -1,478 +1,184 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Complaint System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3a0ca3;
-            --success: #4cc9f0;
-            --info: #4895ef;
-            --warning: #f72585;
-            --danger: #7209b7;
-            --light: #f8f9fa;
-            --dark: #212529;
-        }
+{% extends 'base.html' %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fb;
-            color: #333;
-        }
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
 
-        .sidebar {
-            background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            min-height: 100vh;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
+{% block content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card indigo fade-up stagger-1">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">{{ total_clients }}</div>
+        <div class="stat-label">Total Clients</div>
+    </div>
+    <div class="stat-card cyan fade-up stagger-2">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value">{{ total_products }}</div>
+        <div class="stat-label">Total Products</div>
+    </div>
+    <div class="stat-card violet fade-up stagger-3">
+        <div class="stat-icon">📋</div>
+        <div class="stat-value">{{ total_complaints }}</div>
+        <div class="stat-label">Total Complaints</div>
+    </div>
+    <div class="stat-card emerald fade-up stagger-4">
+        <div class="stat-icon">📅</div>
+        <div class="stat-value">{{ complaints_today }}</div>
+        <div class="stat-label">Today</div>
+    </div>
+    <div class="stat-card amber fade-up stagger-5">
+        <div class="stat-icon">📆</div>
+        <div class="stat-value">{{ complaints_week }}</div>
+        <div class="stat-label">This Week</div>
+    </div>
+    <div class="stat-card rose fade-up stagger-6">
+        <div class="stat-icon">🗓️</div>
+        <div class="stat-value">{{ complaints_month }}</div>
+        <div class="stat-label">This Month</div>
+    </div>
+</div>
 
-        .sidebar .brand {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .sidebar .nav-link {
-            color: rgba(255,255,255,0.8);
-            padding: 12px 20px;
-            margin: 5px 10px;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            color: white;
-            background: rgba(255,255,255,0.1);
-            transform: translateX(5px);
-        }
-
-        .sidebar .nav-link i {
-            width: 25px;
-        }
-
-        .main-content {
-            padding: 20px;
-        }
-
-        .navbar-custom {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border: none;
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--dark);
-        }
-
-        .stat-label {
-            color: #6c757d;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .chart-container {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        }
-
-        .table-container {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        }
-
-        .table th {
-            border: none;
-            color: #6c757d;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-        }
-
-        .table td {
-            border: none;
-            padding: 15px 10px;
-            border-bottom: 1px solid #f1f3f4;
-        }
-
-        .badge-status {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .badge-new { background: #e3f2fd; color: #1565c0; }
-        .badge-assigned { background: #fff3e0; color: #ef6c00; }
-        .badge-in_progress { background: #e8f5e9; color: #2e7d32; }
-        .badge-closed { background: #f3e5f5; color: #7b1fa2; }
-
-        .badge-priority {
-            padding: 4px 10px;
-            border-radius: 10px;
-            font-size: 0.75rem;
-        }
-
-        .badge-high { background: #ffebee; color: #c62828; }
-        .badge-medium { background: #fff8e1; color: #ff8f00; }
-        .badge-low { background: #e8f5e9; color: #2e7d32; }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar">
-                <div class="brand">
-                    <h4><i class="fas fa-tools me-2"></i> Complaint System</h4>
-                    <small class="text-light">Administrator Panel</small>
-                </div>
-
-                <div class="d-flex flex-column mt-4">
-                    <a href="{% url 'admin_dashboard' %}" class="nav-link active">
-                        <i class="fas fa-tachometer-alt"></i> Dashboard
-                    </a>
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-users"></i> Clients
-                    </a>
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-box"></i> Products
-                    </a>
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-exclamation-circle"></i> Complaints
-                    </a>
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-user-cog"></i> Engineers
-                    </a>
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-chart-bar"></i> Reports
-                    </a>
-                    <a href="{% url 'change_password' %}" class="nav-link">
-                        <i class="fas fa-key"></i> Change Password
-                    </a>
-                    <a href="{% url 'logout' %}" class="nav-link mt-auto">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </div>
-            </div>
-
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content">
-                <!-- Top Bar -->
-                <div class="navbar-custom">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-0">Admin Dashboard</h5>
-                            <small class="text-muted">Welcome back, {{ user.username }}</small>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <div class="user-avatar me-3">
-                                {{ user.username|slice:":1"|upper }}
-                            </div>
-                            <div>
-                                <strong>{{ user.username }}</strong>
-                                <div class="text-muted" style="font-size: 0.8rem;">Administrator</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="stat-card">
-                            <div class="d-flex align-items-center">
-                                <div class="stat-icon me-3" style="background: linear-gradient(45deg, #4361ee, #3a0ca3);">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                <div>
-                                    <div class="stat-value">{{ total_clients }}</div>
-                                    <div class="stat-label">Total Clients</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <div class="stat-card">
-                            <div class="d-flex align-items-center">
-                                <div class="stat-icon me-3" style="background: linear-gradient(45deg, #4cc9f0, #4895ef);">
-                                    <i class="fas fa-box"></i>
-                                </div>
-                                <div>
-                                    <div class="stat-value">{{ total_products }}</div>
-                                    <div class="stat-label">Total Products</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <div class="stat-card">
-                            <div class="d-flex align-items-center">
-                                <div class="stat-icon me-3" style="background: linear-gradient(45deg, #f72585, #7209b7);">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                </div>
-                                <div>
-                                    <div class="stat-value">{{ total_complaints }}</div>
-                                    <div class="stat-label">Total Complaints</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <div class="stat-card">
-                            <div class="d-flex align-items-center">
-                                <div class="stat-icon me-3" style="background: linear-gradient(45deg, #2ecc71, #27ae60);">
-                                    <i class="fas fa-calendar-day"></i>
-                                </div>
-                                <div>
-                                    <div class="stat-value">{{ complaints_today }}</div>
-                                    <div class="stat-label">Today's Complaints</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Charts -->
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="chart-container">
-                            <h6 class="mb-3">Complaint Status Distribution</h6>
-                            <canvas id="statusChart" height="200"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="chart-container">
-                            <h6 class="mb-3">Priority Distribution</h6>
-                            <canvas id="priorityChart" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="chart-container">
-                            <h6 class="mb-3">Top Faults</h6>
-                            <canvas id="faultChart" height="100"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Complaints Table -->
-                <div class="table-container">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="mb-0">Recent Complaints</h6>
-                        <a href="#" class="btn btn-sm btn-primary">View All</a>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Complaint No</th>
-                                    <th>Client</th>
-                                    <th>Product</th>
-                                    <th>Fault</th>
-                                    <th>Status</th>
-                                    <th>Priority</th>
-                                    <th>Date</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for complaint in recent_complaints %}
-                                <tr>
-                                    <td><strong>{{ complaint.complaint_no }}</strong></td>
-                                    <td>{{ complaint.client.name|default:"N/A" }}</td>
-                                    <td>{{ complaint.product.name|default:"N/A" }}</td>
-                                    <td>{{ complaint.fault.fault_name|default:"N/A" }}</td>
-                                    <td>
-                                        <span class="badge-status badge-{{ complaint.status }}">
-                                            {{ complaint.get_status_display }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge-priority badge-{{ complaint.priority }}">
-                                            {{ complaint.get_priority_display }}
-                                        </span>
-                                    </td>
-                                    <td>{{ complaint.created_at|date:"d M Y" }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary">View</button>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="8" class="text-center py-4">
-                                        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
-                                        <p class="text-muted">No complaints found</p>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+<!-- Charts Row -->
+<div class="charts-grid">
+    <div class="glass-card fade-up">
+        <div class="card-header">
+            <h3>Complaint Status</h3>
+        </div>
+        <div class="chart-container">
+            <canvas id="statusChart" height="260"></canvas>
         </div>
     </div>
+    <div class="glass-card fade-up">
+        <div class="card-header">
+            <h3>Priority Distribution</h3>
+        </div>
+        <div class="chart-container">
+            <canvas id="priorityChart" height="260"></canvas>
+        </div>
+    </div>
+</div>
 
-    <script>
-        // Status Chart
-        const statusData = {{ status_data|safe }};
-        const statusLabels = statusData.map(item =>
-            item.status.replace('_', ' ').toUpperCase()
-        );
-        const statusValues = statusData.map(item => item.count);
+<!-- Top Faults -->
+<div class="glass-card fade-up mb-3">
+    <div class="card-header">
+        <h3>Top Faults</h3>
+    </div>
+    <div class="chart-container">
+        <canvas id="faultChart" height="200"></canvas>
+    </div>
+</div>
 
-        const statusColors = {
-            'new': '#4361ee',
-            'assigned': '#f72585',
-            'in_progress': '#4cc9f0',
-            'closed': '#2ecc71'
-        };
+<!-- Recent Complaints -->
+<div class="glass-card fade-up">
+    <div class="card-header">
+        <h3>Recent Complaints</h3>
+        <a href="{% url 'complaint_list' %}" class="btn btn-secondary btn-sm">View All →</a>
+    </div>
+    {% if recent_complaints %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Complaint #</th>
+                    <th>Client</th>
+                    <th>Product</th>
+                    <th>Fault</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in recent_complaints %}
+                <tr>
+                    <td class="td-bold">{{ c.complaint_no }}</td>
+                    <td>{{ c.client }}</td>
+                    <td>{{ c.product }}</td>
+                    <td>{{ c.fault|default:"—" }}</td>
+                    <td><span class="badge badge-{{ c.status }}">{{ c.get_status_display }}</span></td>
+                    <td><span class="badge badge-{{ c.priority }}">{{ c.get_priority_display }}</span></td>
+                    <td>{{ c.created_at|date:"d M Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>No complaints yet</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
 
-        const statusChart = new Chart(document.getElementById('statusChart'), {
-            type: 'doughnut',
-            data: {
-                labels: statusLabels,
-                datasets: [{
-                    data: statusValues,
-                    backgroundColor: statusLabels.map(label =>
-                        statusColors[label.toLowerCase().replace(' ', '_')]
-                    ),
-                    borderWidth: 0
-                }]
+{% block extra_js %}
+<script>
+    // Status Doughnut
+    const statusData = JSON.parse('{{ status_data|escapejs }}');
+    const sLabels = statusData.map(d => d.status);
+    const sValues = statusData.map(d => d.count);
+    const sColors = sLabels.map(s => ({
+        'new': '#818cf8', 'assigned': '#fbbf24', 'in_progress': '#22d3ee',
+        'resolved': '#34d399', 'closed': '#9ca3af', 'visit_only': '#a78bfa', 'cancel': '#fb7185'
+    }[s] || '#6b7280'));
+
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: { labels: sLabels, datasets: [{ data: sValues, backgroundColor: sColors, borderWidth: 0 }] },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#9a9ab8', padding: 14, usePointStyle: true, pointStyleWidth: 10 } }
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'right'
-                    }
-                }
+            cutout: '65%'
+        }
+    });
+
+    // Priority Bar
+    const priorityData = JSON.parse('{{ priority_data|escapejs }}');
+    const pLabels = priorityData.map(d => d.priority);
+    const pValues = priorityData.map(d => d.count);
+    const pColors = pLabels.map(p => ({ 'high': '#fb7185', 'medium': '#fbbf24', 'low': '#34d399' }[p] || '#6b7280'));
+
+    new Chart(document.getElementById('priorityChart'), {
+        type: 'bar',
+        data: { labels: pLabels, datasets: [{ data: pValues, backgroundColor: pColors, borderRadius: 6, barThickness: 36 }] },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#9a9ab8' }, grid: { display: false } },
+                y: { ticks: { color: '#9a9ab8' }, grid: { color: 'rgba(255,255,255,0.04)' } }
             }
-        });
+        }
+    });
 
-        // Priority Chart
-        const priorityData = {{ priority_data|safe }};
-        const priorityLabels = priorityData.map(item =>
-            item.priority.toUpperCase()
-        );
-        const priorityValues = priorityData.map(item => item.count);
+    // Top Faults
+    const faultData = JSON.parse('{{ fault_data|escapejs }}');
+    const fLabels = faultData.map(d => d.fault);
+    const fValues = faultData.map(d => d.count);
 
-        const priorityChart = new Chart(document.getElementById('priorityChart'), {
-            type: 'bar',
-            data: {
-                labels: priorityLabels,
-                datasets: [{
-                    label: 'Complaints',
-                    data: priorityValues,
-                    backgroundColor: [
-                        '#f72585',  // High
-                        '#ff9e00',  // Medium
-                        '#2ecc71'   // Low
-                    ],
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
-                }
+    new Chart(document.getElementById('faultChart'), {
+        type: 'bar',
+        data: {
+            labels: fLabels,
+            datasets: [{
+                data: fValues,
+                backgroundColor: ['#818cf8', '#22d3ee', '#a78bfa', '#fbbf24', '#34d399'],
+                borderRadius: 6,
+                barThickness: 36
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#9a9ab8' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                y: { ticks: { color: '#9a9ab8' }, grid: { display: false } }
             }
-        });
-
-        // Fault Chart
-        const faultData = {{ fault_data|safe }};
-        const faultLabels = faultData.map(item => item.fault);
-        const faultValues = faultData.map(item => item.count);
-
-        const faultChart = new Chart(document.getElementById('faultChart'), {
-            type: 'horizontalBar',
-            data: {
-                labels: faultLabels,
-                datasets: [{
-                    label: 'Occurrences',
-                    data: faultValues,
-                    backgroundColor: '#4361ee',
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                indexAxis: 'y',
-                scales: {
-                    x: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+        }
+    });
+</script>
+{% endblock %}

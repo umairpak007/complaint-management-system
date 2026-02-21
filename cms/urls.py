@@ -42,6 +42,9 @@ def home_redirect(request):
     return redirect('login')
 
 urlpatterns = [
+    # Root → redirect by role (or to login)
+    path('', home_redirect, name='home'),
+
     # Existing Admin (Django built-in)
     path('admin/', admin.site.urls),
     

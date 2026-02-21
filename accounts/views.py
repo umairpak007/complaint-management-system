@@ -98,10 +98,7 @@ except ImportError:
 
 def user_login(request):
     if request.user.is_authenticated:
-        if request.user.role == 'admin':
-            return redirect('admin_dashboard')
-        else:
-            return redirect('engineer_dashboard')
+        return redirect('home')
 
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -111,13 +108,9 @@ def user_login(request):
 
         if user is not None:
             login(request, user)
-
-            if user.role == 'admin':
-                messages.success(request, f'Welcome back, Admin {user.username}!')
-                return redirect('admin_dashboard')
-            else:
-                messages.success(request, f'Welcome, Engineer {user.username}!')
-                return redirect('engineer_dashboard')
+            role_label = user.get_role_display() if hasattr(user, 'get_role_display') else user.role.capitalize()
+            messages.success(request, f'Welcome, {role_label} {user.username}!')
+            return redirect('home')
         else:
             messages.error(request, 'Invalid username or password')
 
@@ -135,7 +128,7 @@ def user_logout(request):
 def admin_dashboard(request):
     if request.user.role != 'admin':
         messages.error(request, 'Access denied! Admin only.')
-        return redirect('engineer_dashboard')
+        return redirect('home')
 
     # Get statistics
     today = timezone.now().date()
@@ -259,7 +252,7 @@ def admin_dashboard(request):
 def engineer_dashboard(request):
     if request.user.role != 'engineer':
         messages.error(request, 'Access denied! Engineer only.')
-        return redirect('admin_dashboard')
+        return redirect('home')
 
     try:
         # Get engineer's assigned complaints
